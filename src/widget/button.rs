@@ -97,6 +97,10 @@ pub struct Image {
     pub color: ImageColor,
     /// The rectangular area of the original source image that should be displayed.
     pub src_rect: Option<Rect>,
+    /// The rectangular area of the original source image that should be displayed when the mouse hovers over the button.
+    pub hover_src_rect: Option<Rect>,
+    /// The rectangular area of the original source image that should be displayed when the mouse has captured and is pressing the button.
+    pub press_src_rect: Option<Rect>,
 }
 
 /// The coloring of the `Image`.
@@ -151,6 +155,8 @@ impl<'a> Button<'a, Image> {
             hover_image_id: None,
             press_image_id: None,
             src_rect: None,
+            hover_src_rect: None,
+            press_src_rect: None,
             color: ImageColor::None,
         };
         Self::new_internal(image)
@@ -161,6 +167,22 @@ impl<'a> Button<'a, Image> {
     /// If this method is not called, the entire image will be used.
     pub fn source_rectangle(mut self, rect: Rect) -> Self {
         self.show.src_rect = Some(rect);
+        self
+    }
+
+    /// The rectangular area of the image that we wish to display while the mouse hovers over the `Button`.
+    ///
+    /// If this method is not called, the entire image will be used.
+    pub fn hover_source_rectangle(mut self, rect: Rect) -> Self {
+        self.show.hover_src_rect = Some(rect);
+        self
+    }
+
+    /// The rectangular area of the image that we wish to display while the `Button` is pressed.
+    ///
+    /// If this method is not called, the entire image will be used.
+    pub fn press_source_rectangle(mut self, rect: Rect) -> Self {
+        self.show.press_src_rect = Some(rect);
         self
     }
 
@@ -341,7 +363,7 @@ impl<'a> Widget for Button<'a, Image> {
         let (interaction, times_triggered) = interaction_and_times_triggered(id, ui);
 
         // Instantiate the image.
-        let Image { image_id, press_image_id, hover_image_id, src_rect, color } = show;
+        let Image { image_id, press_image_id, hover_image_id, src_rect, color, hover_src_rect, press_src_rect } = show;
 
         // Determine the correct image to display.
         let image_id = match interaction {
@@ -356,7 +378,13 @@ impl<'a> Widget for Button<'a, Image> {
             .w_h(w, h)
             .parent(id)
             .graphics_for(id);
-        image.src_rect = src_rect;
+
+        image.src_rect = match interaction {
+            Interaction::Idle => src_rect,
+            Interaction::Hover => hover_src_rect.or(src_rect),
+            Interaction::Press => press_src_rect.or(hover_src_rect).or(src_rect),
+        };
+
         image.style.maybe_color = match color {
             ImageColor::Normal(color) => Some(Some(color)),
             ImageColor::WithFeedback(color) =>
