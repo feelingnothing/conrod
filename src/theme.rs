@@ -3,7 +3,7 @@
 //!
 
 use Scalar;
-use color::{Color, BLACK, WHITE};
+use color::{Color, BLACK, WHITE, TRANSPARENT};
 use position::{Align, Direction, Padding, Position, Relative};
 use fnv;
 use std;
@@ -91,10 +91,10 @@ impl Theme {
             padding: Padding::none(),
             x_position: Position::Relative(Relative::Align(Align::Start), None),
             y_position: Position::Relative(Relative::Direction(Direction::Backwards, 20.0), None),
-            background_color: BLACK,
+            background_color: TRANSPARENT,
             shape_color: WHITE,
             border_color: BLACK,
-            border_width: 1.0,
+            border_width: 0.0,
             label_color: BLACK,
             font_id: None,
             font_size_large: 26,

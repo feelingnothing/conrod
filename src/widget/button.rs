@@ -59,6 +59,7 @@ widget_ids! {
     pub struct FlatIds {
         rectangle,
         label,
+        label_shadow,
     }
 }
 
@@ -68,6 +69,7 @@ widget_ids! {
     pub struct ImageIds {
         image,
         label,
+        label_shadow,
     }
 }
 
@@ -334,7 +336,7 @@ impl<'a> Widget for Button<'a, Flat> {
 
         // Label widget.
         if let Some(l) = maybe_label {
-            label(id, state.label, l, style, ui);
+            label(id, state.label, state.label_shadow, l, style, ui);
         }
 
         TimesClicked(times_triggered)
@@ -400,7 +402,7 @@ impl<'a> Widget for Button<'a, Image> {
         image.set(state.image, ui);
 
         if let Some(s) = maybe_label {
-            label(id, state.label, s, style, ui);
+            label(id, state.label, state.label_shadow, s, style, ui);
         }
 
         TimesClicked(times_triggered)
@@ -438,15 +440,32 @@ fn bordered_rectangle(button_id: widget::Id, rectangle_id: widget::Id,
         .set(rectangle_id, ui);
 }
 
-fn label(button_id: widget::Id, label_id: widget::Id,
+fn label(button_id: widget::Id, label_id: widget::Id, shadow_id: widget::Id,
          label: &str, style: &Style, ui: &mut UiCell)
 {
+    use color::BLACK;
+    use position::Relative;
+
     let color = style.label_color(&ui.theme);
     let font_size = style.label_font_size(&ui.theme);
     let x = style.label_x(&ui.theme);
     let y = style.label_y(&ui.theme);
     let justify = style.label_justify(&ui.theme);
     let font_id = style.label_font_id(&ui.theme).or(ui.fonts.ids().next());
+
+    // Label shadow
+    widget::Text::new(label)
+        .and_then(font_id, widget::Text::font_id)
+        .x_position_relative_to(label_id, Relative::Scalar(2.0))
+        .y_position_relative_to(label_id, Relative::Scalar(-2.0))
+        .justify(justify)
+        .parent(button_id)
+        .graphics_for(button_id)
+        .color(BLACK)
+        .font_size(font_size)
+        .set(shadow_id, ui);
+    
+    // Label
     widget::Text::new(label)
         .and_then(font_id, widget::Text::font_id)
         .x_position_relative_to(button_id, x)
